@@ -26,7 +26,7 @@ const greenIcon = new L.Icon({
 
 const redIcon = new L.Icon({
   iconUrl: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png",
-  shadowUrl: markerShadow,
+  shadowUrl: MARKER_SHADOW,
   iconSize: [25, 41],
   iconAnchor: [12, 41],
   popupAnchor: [1, -34],
