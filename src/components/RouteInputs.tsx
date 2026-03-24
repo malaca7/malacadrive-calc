@@ -1,5 +1,8 @@
 import { MapPin, Navigation, Route, Clock } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { RideMap } from "@/components/RideMap";
+import { useState, useCallback } from "react";
 
 interface RouteInputsProps {
   origem: string;
@@ -16,6 +19,20 @@ export function RouteInputs({
   origem, destino, distanciaKm, tempoEstimado,
   onOrigemChange, onDestinoChange, onDistanciaChange, onTempoChange,
 }: RouteInputsProps) {
+  const [selectingMode, setSelectingMode] = useState<'origem' | 'destino'>('origem');
+  const [origemCoords, setOrigemCoords] = useState<[number, number] | null>(null);
+  const [destinoCoords, setDestinoCoords] = useState<[number, number] | null>(null);
+
+  const handleMapSelect = useCallback((lat: number, lng: number) => {
+    if (selectingMode === 'origem') {
+      setOrigemCoords([lat, lng]);
+      setSelectingMode('destino');
+    } else {
+      setDestinoCoords([lat, lng]);
+      setSelectingMode('origem');
+    }
+  }, [selectingMode]);
+
   return (
     <div className="glass-card p-5 space-y-4 animate-fade-in">
       <h2 className="text-lg font-semibold flex items-center gap-2 font-['Space_Grotesk']">
@@ -23,55 +40,65 @@ export function RouteInputs({
         Rota da Corrida
       </h2>
 
-      <div className="space-y-3">
-        <div className="relative">
-          <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-green-success" />
-          <Input
-            placeholder="Origem (endereço de partida)"
-            value={origem}
-            onChange={(e) => onOrigemChange(e.target.value)}
-            className="pl-10 bg-secondary border-border/50 focus:border-blue-accent placeholder:text-muted-foreground/50"
-          />
-        </div>
+      {/* Mode selector */}
+      <div className="grid grid-cols-2 gap-2">
+        <Button
+          variant={selectingMode === 'origem' ? 'default' : 'secondary'}
+          size="sm"
+          onClick={() => setSelectingMode('origem')}
+          className="gap-1.5 text-xs"
+        >
+          <MapPin className="w-3.5 h-3.5" /> Selecionar Origem
+        </Button>
+        <Button
+          variant={selectingMode === 'destino' ? 'default' : 'secondary'}
+          size="sm"
+          onClick={() => setSelectingMode('destino')}
+          className="gap-1.5 text-xs"
+        >
+          <Navigation className="w-3.5 h-3.5" /> Selecionar Destino
+        </Button>
+      </div>
 
-        <div className="relative">
-          <Navigation className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-destructive" />
-          <Input
-            placeholder="Destino (endereço de chegada)"
-            value={destino}
-            onChange={(e) => onDestinoChange(e.target.value)}
-            className="pl-10 bg-secondary border-border/50 focus:border-blue-accent placeholder:text-muted-foreground/50"
-          />
+      {/* Map */}
+      <RideMap
+        selectingMode={selectingMode}
+        origemCoords={origemCoords}
+        destinoCoords={destinoCoords}
+        onSelect={handleMapSelect}
+        onOrigemAddress={onOrigemChange}
+        onDestinoAddress={onDestinoChange}
+        onDistanceChange={onDistanciaChange}
+        onTimeChange={onTempoChange}
+      />
+
+      {/* Address displays */}
+      <div className="space-y-2">
+        <div className="flex items-start gap-2 text-sm bg-secondary/50 rounded-lg p-2.5">
+          <MapPin className="w-4 h-4 text-green-success flex-shrink-0 mt-0.5" />
+          <span className={origem ? 'text-foreground' : 'text-muted-foreground/50'}>
+            {origem || 'Clique no mapa para definir a origem'}
+          </span>
+        </div>
+        <div className="flex items-start gap-2 text-sm bg-secondary/50 rounded-lg p-2.5">
+          <Navigation className="w-4 h-4 text-destructive flex-shrink-0 mt-0.5" />
+          <span className={destino ? 'text-foreground' : 'text-muted-foreground/50'}>
+            {destino || 'Clique no mapa para definir o destino'}
+          </span>
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
-        <div className="space-y-1.5">
-          <label className="text-xs text-muted-foreground flex items-center gap-1">
-            <Route className="w-3 h-3" /> Distância (KM)
-          </label>
-          <Input
-            type="number"
-            min={0}
-            step={0.1}
-            placeholder="0.0"
-            value={distanciaKm || ''}
-            onChange={(e) => onDistanciaChange(parseFloat(e.target.value) || 0)}
-            className="bg-secondary border-border/50 focus:border-blue-accent"
-          />
+      {/* Distance and time */}
+      {distanciaKm > 0 && (
+        <div className="flex items-center gap-4 text-sm bg-primary/10 border border-primary/20 rounded-lg p-3 animate-fade-in">
+          <span className="flex items-center gap-1.5 font-medium">
+            <Route className="w-4 h-4 text-blue-accent" /> {distanciaKm} km
+          </span>
+          <span className="flex items-center gap-1.5 font-medium">
+            <Clock className="w-4 h-4 text-blue-accent" /> {tempoEstimado}
+          </span>
         </div>
-        <div className="space-y-1.5">
-          <label className="text-xs text-muted-foreground flex items-center gap-1">
-            <Clock className="w-3 h-3" /> Tempo estimado
-          </label>
-          <Input
-            placeholder="Ex: 25 min"
-            value={tempoEstimado}
-            onChange={(e) => onTempoChange(e.target.value)}
-            className="bg-secondary border-border/50 focus:border-blue-accent"
-          />
-        </div>
-      </div>
+      )}
     </div>
   );
 }
