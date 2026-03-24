@@ -108,7 +108,7 @@ export function RideMap({
     const map = L.map(mapContainerRef.current, {
       zoomControl: true,
       attributionControl: false,
-    }).setView([-23.55, -46.63], 13);
+    }).setView([-8.2835, -35.0253], 14); // Cabo de Santo Agostinho, PE
 
     L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png").addTo(map);
     mapRef.current = map;
