@@ -6,23 +6,23 @@
 
 @layer base {
   :root {
-    --background: 220 20% 5%;
+    --background: 220 20% 4%;
     --foreground: 210 40% 96%;
 
-    --card: 220 20% 9%;
+    --card: 220 22% 8%;
     --card-foreground: 210 40% 96%;
 
-    --popover: 220 20% 9%;
+    --popover: 220 22% 8%;
     --popover-foreground: 210 40% 96%;
 
     --primary: 217 91% 60%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 220 20% 14%;
+    --secondary: 220 22% 12%;
     --secondary-foreground: 210 40% 96%;
 
-    --muted: 220 15% 18%;
-    --muted-foreground: 215 20% 60%;
+    --muted: 220 18% 16%;
+    --muted-foreground: 215 20% 55%;
 
     --accent: 217 91% 60%;
     --accent-foreground: 0 0% 100%;
@@ -30,15 +30,15 @@
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 220 15% 20%;
-    --input: 220 15% 20%;
+    --border: 220 18% 15%;
+    --input: 220 18% 15%;
     --ring: 217 91% 60%;
 
-    --radius: 0.75rem;
+    --radius: 0.875rem;
 
-    --navy-deep: 220 25% 3%;
-    --navy: 220 20% 7%;
-    --navy-light: 220 18% 15%;
+    --navy-deep: 220 25% 2%;
+    --navy: 220 22% 6%;
+    --navy-light: 220 18% 14%;
     --blue-accent: 217 91% 60%;
     --blue-glow: 210 100% 70%;
     --green-success: 145 65% 42%;
@@ -72,23 +72,52 @@
 
 @layer utilities {
   .glass-card {
-    @apply bg-card/80 backdrop-blur-xl border border-border/50 rounded-xl shadow-lg;
+    @apply bg-card/60 backdrop-blur-2xl border border-border/40 rounded-2xl;
+    box-shadow: 
+      0 4px 24px -4px rgba(0, 0, 0, 0.4),
+      0 0 0 1px rgba(255, 255, 255, 0.03) inset,
+      0 1px 0 0 rgba(255, 255, 255, 0.04) inset;
   }
 
   .glow-border {
-    box-shadow: 0 0 20px -5px hsl(var(--blue-accent) / 0.3);
+    box-shadow: 
+      0 0 30px -8px hsl(var(--blue-accent) / 0.25),
+      0 4px 24px -4px rgba(0, 0, 0, 0.4);
   }
 
   .text-gradient {
-    @apply bg-clip-text text-transparent bg-gradient-to-r from-[hsl(var(--blue-accent))] to-[hsl(var(--blue-glow))];
+    @apply bg-clip-text text-transparent;
+    background-image: linear-gradient(135deg, hsl(var(--blue-accent)), hsl(var(--blue-glow)));
   }
 
   .btn-glow {
     @apply relative overflow-hidden;
-    box-shadow: 0 0 30px -5px hsl(var(--blue-accent) / 0.4);
+    box-shadow: 0 0 30px -5px hsl(var(--blue-accent) / 0.35);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   .btn-glow:hover {
-    box-shadow: 0 0 40px -5px hsl(var(--blue-accent) / 0.6);
+    box-shadow: 0 0 50px -5px hsl(var(--blue-accent) / 0.55);
+    transform: translateY(-1px);
   }
+
+  .btn-glow:active {
+    transform: translateY(0);
+  }
+
+  .shimmer {
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      hsl(var(--blue-accent) / 0.06) 50%,
+      transparent 100%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 3s ease-in-out infinite;
+  }
+}
+
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
 }
