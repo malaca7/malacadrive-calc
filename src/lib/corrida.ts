@@ -46,7 +46,7 @@ export interface Breakdown {
 }
 
 export function calcularCorrida(corrida: Corrida): Breakdown {
-  const valorKm = Math.max(corrida.distancia_km * VALOR_KM, VALOR_MINIMO_KM);
+  const valorKm = corrida.distancia_km > 0 ? Math.max(corrida.distancia_km * VALOR_KM, VALOR_MINIMO_KM) : 0;
   const adicionalPassageiros = ADICIONAL_PASSAGEIROS[corrida.passageiros_tipo];
   const adicionalFeira = ADICIONAL_FEIRA[corrida.feira_tipo];
   const adicionalAnimal = ADICIONAL_ANIMAL[corrida.animal_tipo];
