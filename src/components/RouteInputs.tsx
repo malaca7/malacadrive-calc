@@ -66,33 +66,39 @@ export function RouteInputs({
         />
       </div>
 
-      {/* Map */}
-      <RideMap
-        selectingMode={selectingMode}
-        origemCoords={origemCoords}
-        destinoCoords={destinoCoords}
-        onSelect={handleMapSelect}
-        onOrigemAddress={onOrigemChange}
-        onDestinoAddress={onDestinoChange}
-        onDistanceChange={onDistanciaChange}
-        onTimeChange={onTempoChange}
-      />
+      {/* Map - only show after both are selected */}
+      {origemCoords && destinoCoords && (
+        <>
+          <RideMap
+            selectingMode={selectingMode}
+            origemCoords={origemCoords}
+            destinoCoords={destinoCoords}
+            onSelect={handleMapSelect}
+            onOrigemAddress={onOrigemChange}
+            onDestinoAddress={onDestinoChange}
+            onDistanceChange={onDistanciaChange}
+            onTimeChange={onTempoChange}
+          />
 
-      <p className="text-xs text-muted-foreground text-center">
-        <Search className="w-3 h-3 inline mr-1" />
-        Pesquise acima ou clique no mapa para selecionar
-      </p>
+          {/* Distance and time */}
+          {distanciaKm > 0 && (
+            <div className="flex items-center gap-4 text-sm bg-primary/10 border border-primary/20 rounded-lg p-3 animate-fade-in">
+              <span className="flex items-center gap-1.5 font-medium">
+                <Route className="w-4 h-4 text-blue-accent" /> {distanciaKm} km
+              </span>
+              <span className="flex items-center gap-1.5 font-medium">
+                <Clock className="w-4 h-4 text-blue-accent" /> {tempoEstimado}
+              </span>
+            </div>
+          )}
+        </>
+      )}
 
-      {/* Distance and time */}
-      {distanciaKm > 0 && (
-        <div className="flex items-center gap-4 text-sm bg-primary/10 border border-primary/20 rounded-lg p-3 animate-fade-in">
-          <span className="flex items-center gap-1.5 font-medium">
-            <Route className="w-4 h-4 text-blue-accent" /> {distanciaKm} km
-          </span>
-          <span className="flex items-center gap-1.5 font-medium">
-            <Clock className="w-4 h-4 text-blue-accent" /> {tempoEstimado}
-          </span>
-        </div>
+      {(!origemCoords || !destinoCoords) && (
+        <p className="text-xs text-muted-foreground text-center py-4">
+          <Search className="w-3 h-3 inline mr-1" />
+          Pesquise origem e destino para ver a rota no mapa
+        </p>
       )}
     </div>
   );
