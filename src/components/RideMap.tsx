@@ -211,18 +211,7 @@ export function RideMap({
     }
   }, [origemCoords, destinoCoords, onDistanceChange, onTimeChange]);
 
-  useEffect(() => {
-    if (!origemCoords || !destinoCoords) return;
-    const straightDistance = haversineDistance(
-      origemCoords[0],
-      origemCoords[1],
-      destinoCoords[0],
-      destinoCoords[1]
-    );
-    const roadDistance = Math.round(straightDistance * 1.3 * 10) / 10;
-    onDistanceChange(roadDistance);
-    onTimeChange(estimateTime(roadDistance));
-  }, [origemCoords, destinoCoords, onDistanceChange, onTimeChange]);
+  // Distance/time now calculated from OSRM route in the effect above
 
   return (
     <div className="rounded-xl overflow-hidden border border-border/50 shadow-lg">
