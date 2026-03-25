@@ -52,6 +52,24 @@ function estimateTime(distanceKm: number): string {
   return `${h}h ${m}min`;
 }
 
+async function fetchCarRoute(origin: [number, number], dest: [number, number]): Promise<{ coords: [number, number][]; distanceKm: number; durationMin: number } | null> {
+  try {
+    const url = `https://router.project-osrm.org/route/v1/driving/${origin[1]},${origin[0]};${dest[1]},${dest[0]}?overview=full&geometries=geojson`;
+    const res = await fetch(url);
+    const data = await res.json();
+    if (data.code !== "Ok" || !data.routes?.length) return null;
+    const route = data.routes[0];
+    const coords: [number, number][] = route.geometry.coordinates.map((c: number[]) => [c[1], c[0]] as [number, number]);
+    return {
+      coords,
+      distanceKm: Math.round(route.distance / 100) / 10,
+      durationMin: Math.round(route.duration / 60),
+    };
+  } catch {
+    return null;
+  }
+}
+
 async function reverseGeocode(lat: number, lon: number): Promise<string> {
   try {
     const res = await fetch(
@@ -167,34 +185,33 @@ export function RideMap({
     }
 
     if (origemCoords && destinoCoords) {
-      if (!routeLineRef.current) {
-        routeLineRef.current = L.polyline([origemCoords, destinoCoords], {
+      fetchCarRoute(origemCoords, destinoCoords).then((result) => {
+        if (!mapRef.current) return;
+        if (routeLineRef.current) {
+          mapRef.current.removeLayer(routeLineRef.current);
+          routeLineRef.current = null;
+        }
+        const routeCoords = result ? result.coords : [origemCoords, destinoCoords];
+        routeLineRef.current = L.polyline(routeCoords, {
           color: "#3b82f6",
-          weight: 3,
-          dashArray: "8 8",
-        }).addTo(map);
-      } else {
-        routeLineRef.current.setLatLngs([origemCoords, destinoCoords]);
-      }
-      map.fitBounds(L.latLngBounds([origemCoords, destinoCoords]), { padding: [30, 30] });
+          weight: 4,
+          opacity: 0.8,
+        }).addTo(mapRef.current);
+        mapRef.current.fitBounds(routeLineRef.current.getBounds(), { padding: [30, 30] });
+
+        if (result) {
+          onDistanceChange(result.distanceKm);
+          const mins = result.durationMin;
+          onTimeChange(mins < 60 ? `${mins} min` : `${Math.floor(mins / 60)}h ${mins % 60}min`);
+        }
+      });
     } else if (routeLineRef.current) {
       map.removeLayer(routeLineRef.current);
       routeLineRef.current = null;
     }
-  }, [origemCoords, destinoCoords]);
-
-  useEffect(() => {
-    if (!origemCoords || !destinoCoords) return;
-    const straightDistance = haversineDistance(
-      origemCoords[0],
-      origemCoords[1],
-      destinoCoords[0],
-      destinoCoords[1]
-    );
-    const roadDistance = Math.round(straightDistance * 1.3 * 10) / 10;
-    onDistanceChange(roadDistance);
-    onTimeChange(estimateTime(roadDistance));
   }, [origemCoords, destinoCoords, onDistanceChange, onTimeChange]);
+
+  // Distance/time now calculated from OSRM route in the effect above
 
   return (
     <div className="rounded-xl overflow-hidden border border-border/50 shadow-lg">
