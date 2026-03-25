@@ -13,6 +13,7 @@ export interface Corrida {
 }
 
 export const VALOR_KM = 2.75;
+export const VALOR_MINIMO_KM = 10;
 export const VALOR_ESPERA_MIN = 0.50;
 export const VALOR_PARADA = 5.00;
 
