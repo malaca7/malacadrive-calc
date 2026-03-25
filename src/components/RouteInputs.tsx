@@ -100,18 +100,6 @@ export function RouteInputs({
           Pesquise origem e destino para ver a rota no mapa
         </p>
       )}
-
-      {/* Distance and time */}
-      {distanciaKm > 0 && (
-        <div className="flex items-center gap-4 text-sm bg-primary/10 border border-primary/20 rounded-lg p-3 animate-fade-in">
-          <span className="flex items-center gap-1.5 font-medium">
-            <Route className="w-4 h-4 text-blue-accent" /> {distanciaKm} km
-          </span>
-          <span className="flex items-center gap-1.5 font-medium">
-            <Clock className="w-4 h-4 text-blue-accent" /> {tempoEstimado}
-          </span>
-        </div>
-      )}
     </div>
   );
 }
