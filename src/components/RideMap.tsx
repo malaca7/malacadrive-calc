@@ -185,21 +185,31 @@ export function RideMap({
     }
 
     if (origemCoords && destinoCoords) {
-      if (!routeLineRef.current) {
-        routeLineRef.current = L.polyline([origemCoords, destinoCoords], {
+      fetchCarRoute(origemCoords, destinoCoords).then((result) => {
+        if (!mapRef.current) return;
+        if (routeLineRef.current) {
+          mapRef.current.removeLayer(routeLineRef.current);
+          routeLineRef.current = null;
+        }
+        const routeCoords = result ? result.coords : [origemCoords, destinoCoords];
+        routeLineRef.current = L.polyline(routeCoords, {
           color: "#3b82f6",
-          weight: 3,
-          dashArray: "8 8",
-        }).addTo(map);
-      } else {
-        routeLineRef.current.setLatLngs([origemCoords, destinoCoords]);
-      }
-      map.fitBounds(L.latLngBounds([origemCoords, destinoCoords]), { padding: [30, 30] });
+          weight: 4,
+          opacity: 0.8,
+        }).addTo(mapRef.current);
+        mapRef.current.fitBounds(routeLineRef.current.getBounds(), { padding: [30, 30] });
+
+        if (result) {
+          onDistanceChange(result.distanceKm);
+          const mins = result.durationMin;
+          onTimeChange(mins < 60 ? `${mins} min` : `${Math.floor(mins / 60)}h ${mins % 60}min`);
+        }
+      });
     } else if (routeLineRef.current) {
       map.removeLayer(routeLineRef.current);
       routeLineRef.current = null;
     }
-  }, [origemCoords, destinoCoords]);
+  }, [origemCoords, destinoCoords, onDistanceChange, onTimeChange]);
 
   useEffect(() => {
     if (!origemCoords || !destinoCoords) return;
