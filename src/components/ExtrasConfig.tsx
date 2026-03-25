@@ -19,19 +19,13 @@ export function ExtrasConfig({
   onTemEsperaChange, onMinutosEsperaChange, onTemParadasChange, onParadasChange,
 }: ExtrasConfigProps) {
   return (
-    <div className="glass-card p-5 space-y-5">
-      <h2 className="text-base font-semibold flex items-center gap-2 font-['Space_Grotesk'] tracking-tight">
-        <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center">
-          <Clock className="w-4 h-4 text-primary" />
-        </div>
-        Extras
-      </h2>
-
+    <div className="space-y-4 py-2">
       <div className="space-y-3">
         <div className="flex items-center justify-between">
-          <label className="text-sm text-muted-foreground flex items-center gap-1.5">
-            <Clock className="w-3.5 h-3.5" /> Tempo de espera
-            <span className="text-[10px] opacity-50 ml-1">(R$ 0,50/min)</span>
+          <label className="text-sm text-foreground/80 flex items-center gap-2">
+            <Clock className="w-4 h-4 text-muted-foreground" />
+            Tempo de espera
+            <span className="text-xs text-muted-foreground">(R$ 0,50/min)</span>
           </label>
           <Switch checked={temEspera} onCheckedChange={onTemEsperaChange} />
         </div>
@@ -41,26 +35,29 @@ export function ExtrasConfig({
               initial={{ height: 0, opacity: 0 }}
               animate={{ height: "auto", opacity: 1 }}
               exit={{ height: 0, opacity: 0 }}
-              transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+              transition={{ duration: 0.2 }}
               className="overflow-hidden"
             >
               <Input
                 type="number" min={0}
-                placeholder="Minutos de espera"
+                placeholder="Minutos"
                 value={minutosEspera || ''}
                 onChange={(e) => onMinutosEsperaChange(parseInt(e.target.value) || 0)}
-                className="bg-secondary/40 border-border/40 focus:border-primary/50 rounded-xl transition-all duration-300"
+                className="bg-secondary border-0 rounded-xl h-11"
               />
             </motion.div>
           )}
         </AnimatePresence>
       </div>
 
+      <div className="h-px bg-border/30" />
+
       <div className="space-y-3">
         <div className="flex items-center justify-between">
-          <label className="text-sm text-muted-foreground flex items-center gap-1.5">
-            <MapPinned className="w-3.5 h-3.5" /> Paradas no trajeto
-            <span className="text-[10px] opacity-50 ml-1">(R$ 5,00/parada)</span>
+          <label className="text-sm text-foreground/80 flex items-center gap-2">
+            <MapPinned className="w-4 h-4 text-muted-foreground" />
+            Paradas
+            <span className="text-xs text-muted-foreground">(R$ 5/parada)</span>
           </label>
           <Switch checked={temParadas} onCheckedChange={onTemParadasChange} />
         </div>
@@ -70,15 +67,15 @@ export function ExtrasConfig({
               initial={{ height: 0, opacity: 0 }}
               animate={{ height: "auto", opacity: 1 }}
               exit={{ height: 0, opacity: 0 }}
-              transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+              transition={{ duration: 0.2 }}
               className="overflow-hidden"
             >
               <Input
                 type="number" min={0}
-                placeholder="Quantidade de paradas"
+                placeholder="Quantidade"
                 value={paradas || ''}
                 onChange={(e) => onParadasChange(parseInt(e.target.value) || 0)}
-                className="bg-secondary/40 border-border/40 focus:border-primary/50 rounded-xl transition-all duration-300"
+                className="bg-secondary border-0 rounded-xl h-11"
               />
             </motion.div>
           )}

@@ -2,29 +2,22 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import L, { type LeafletMouseEvent, type Map as LeafletMap } from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { motion, AnimatePresence } from "framer-motion";
-import { Loader2, Navigation } from "lucide-react";
+import { Loader2 } from "lucide-react";
 
-const MARKER_ICON = "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png";
-const MARKER_ICON_2X = "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png";
 const MARKER_SHADOW = "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png";
 
-delete (L.Icon.Default.prototype as { _getIconUrl?: unknown })._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: MARKER_ICON_2X,
-  iconUrl: MARKER_ICON,
-  shadowUrl: MARKER_SHADOW,
+const originIcon = L.divIcon({
+  className: '',
+  html: `<div style="width:14px;height:14px;border-radius:50%;background:#fff;border:3px solid #000;box-shadow:0 0 0 3px rgba(0,0,0,0.1)"></div>`,
+  iconSize: [14, 14],
+  iconAnchor: [7, 7],
 });
 
-const greenIcon = new L.Icon({
-  iconUrl: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png",
-  shadowUrl: MARKER_SHADOW,
-  iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34], shadowSize: [41, 41],
-});
-
-const redIcon = new L.Icon({
-  iconUrl: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png",
-  shadowUrl: MARKER_SHADOW,
-  iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34], shadowSize: [41, 41],
+const destIcon = L.divIcon({
+  className: '',
+  html: `<div style="width:14px;height:14px;border-radius:2px;background:#000;border:2px solid #fff;box-shadow:0 0 0 3px rgba(0,0,0,0.1)"></div>`,
+  iconSize: [14, 14],
+  iconAnchor: [7, 7],
 });
 
 async function fetchCarRoute(origin: [number, number], dest: [number, number]) {
@@ -67,11 +60,13 @@ interface RideMapProps {
   onDestinoAddress: (addr: string) => void;
   onDistanceChange: (km: number) => void;
   onTimeChange: (time: string) => void;
+  fullscreen?: boolean;
 }
 
 export function RideMap({
   selectingMode, origemCoords, destinoCoords,
   onSelect, onOrigemAddress, onDestinoAddress, onDistanceChange, onTimeChange,
+  fullscreen,
 }: RideMapProps) {
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<LeafletMap | null>(null);
@@ -97,7 +92,7 @@ export function RideMap({
       attributionControl: false,
     }).setView([-8.2835, -35.0253], 14);
 
-    L.control.zoom({ position: "bottomright" }).addTo(map);
+    // Uber uses a clean dark map style
     L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png").addTo(map);
     mapRef.current = map;
 
@@ -126,7 +121,7 @@ export function RideMap({
 
     if (origemCoords) {
       if (!origemMarkerRef.current) {
-        origemMarkerRef.current = L.marker(origemCoords, { icon: greenIcon }).bindPopup("Origem").addTo(map);
+        origemMarkerRef.current = L.marker(origemCoords, { icon: originIcon }).addTo(map);
       } else {
         origemMarkerRef.current.setLatLng(origemCoords);
       }
@@ -137,7 +132,7 @@ export function RideMap({
 
     if (destinoCoords) {
       if (!destinoMarkerRef.current) {
-        destinoMarkerRef.current = L.marker(destinoCoords, { icon: redIcon }).bindPopup("Destino").addTo(map);
+        destinoMarkerRef.current = L.marker(destinoCoords, { icon: destIcon }).addTo(map);
       } else {
         destinoMarkerRef.current.setLatLng(destinoCoords);
       }
@@ -155,24 +150,26 @@ export function RideMap({
           routeLineRef.current = null;
         }
         const routeCoords = result ? result.coords : [origemCoords, destinoCoords];
+        
+        // Shadow line
+        L.polyline(routeCoords, {
+          color: "#000",
+          weight: 8,
+          opacity: 0.15,
+          lineCap: "round",
+          lineJoin: "round",
+        }).addTo(mapRef.current!);
+
+        // Main route line
         routeLineRef.current = L.polyline(routeCoords, {
-          color: "hsl(217, 91%, 60%)",
-          weight: 5,
+          color: "#ffffff",
+          weight: 4,
           opacity: 0.9,
           lineCap: "round",
           lineJoin: "round",
-        }).addTo(mapRef.current);
+        }).addTo(mapRef.current!);
 
-        // Add animated dash effect
-        const decoratorLine = L.polyline(routeCoords, {
-          color: "hsl(210, 100%, 70%)",
-          weight: 2,
-          opacity: 0.4,
-          dashArray: "8, 16",
-          lineCap: "round",
-        }).addTo(mapRef.current);
-
-        mapRef.current.fitBounds(routeLineRef.current.getBounds(), { padding: [40, 40] });
+        mapRef.current!.fitBounds(routeLineRef.current.getBounds(), { padding: [60, 60] });
 
         if (result) {
           onDistanceChange(result.distanceKm);
@@ -188,45 +185,39 @@ export function RideMap({
   }, [origemCoords, destinoCoords, onDistanceChange, onTimeChange]);
 
   return (
-    <motion.div
-      initial={{ opacity: 0, scale: 0.98 }}
-      animate={{ opacity: 1, scale: 1 }}
-      transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-      className="rounded-2xl overflow-hidden border border-border/40 shadow-2xl shadow-black/30 glow-border relative"
-    >
-      <div className="h-[300px] sm:h-[360px] relative">
-        <div ref={mapContainerRef} className="h-full w-full" />
+    <div className={`relative ${fullscreen ? 'h-full w-full' : 'h-[280px] rounded-2xl overflow-hidden'}`}>
+      <div ref={mapContainerRef} className="h-full w-full" />
 
-        {/* Mode indicator */}
-        <motion.div
-          key={selectingMode}
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ type: "spring", stiffness: 300, damping: 25 }}
-          className="absolute top-3 left-3 z-[1000] bg-card/80 backdrop-blur-xl rounded-xl px-3 py-2 text-xs font-medium border border-border/40 flex items-center gap-2"
-        >
-          <span className={`w-2 h-2 rounded-full ${selectingMode === "origem" ? "bg-green-500 shadow-lg shadow-green-500/50" : "bg-red-500 shadow-lg shadow-red-500/50"} animate-pulse`} />
-          {selectingMode === "origem" ? "📍 Selecionando Origem" : "🏁 Selecionando Destino"}
-        </motion.div>
+      {/* Mode indicator - minimal */}
+      <motion.div
+        key={selectingMode}
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="absolute top-4 left-4 z-[1000] bg-background/90 backdrop-blur-sm rounded-full px-3 py-1.5 text-xs font-medium flex items-center gap-2"
+      >
+        <span className={`w-2 h-2 ${selectingMode === "origem" ? "rounded-full bg-foreground" : "rounded-sm bg-foreground"}`} />
+        {selectingMode === "origem" ? "Toque para origem" : "Toque para destino"}
+      </motion.div>
 
-        {/* Loading route indicator */}
-        <AnimatePresence>
-          {loadingRoute && (
-            <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              className="absolute top-3 right-3 z-[1000] bg-primary/90 backdrop-blur-xl rounded-xl px-3 py-2 text-xs font-medium flex items-center gap-2 text-primary-foreground"
-            >
-              <Loader2 className="w-3.5 h-3.5 animate-spin" />
-              Traçando rota...
-            </motion.div>
-          )}
-        </AnimatePresence>
+      {/* Loading */}
+      <AnimatePresence>
+        {loadingRoute && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="absolute top-4 right-4 z-[1000] bg-foreground text-background rounded-full px-3 py-1.5 text-xs font-medium flex items-center gap-2"
+          >
+            <Loader2 className="w-3 h-3 animate-spin" />
+            Traçando rota
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-        {/* Bottom gradient overlay */}
-        <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-background/60 to-transparent pointer-events-none z-[500]" />
-      </div>
-    </motion.div>
+      {/* Bottom gradient */}
+      {fullscreen && (
+        <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-background to-transparent pointer-events-none z-[500]" />
+      )}
+    </div>
   );
 }

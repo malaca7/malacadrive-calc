@@ -18,10 +18,10 @@ function LineItem({ icon: Icon, label, value, index }: {
   if (value === 0) return null;
   return (
     <motion.div
-      initial={{ x: -10, opacity: 0 }}
-      animate={{ x: 0, opacity: 1 }}
-      transition={{ duration: 0.3, delay: index * 0.05, ease: [0.22, 1, 0.36, 1] }}
-      className="flex items-center justify-between py-2.5 border-b border-border/20 last:border-0"
+      initial={{ opacity: 0, x: -8 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ duration: 0.2, delay: index * 0.04 }}
+      className="flex items-center justify-between py-3 border-b border-border/20 last:border-0"
     >
       <span className="flex items-center gap-2 text-sm text-muted-foreground">
         <Icon className="w-4 h-4" /> {label}
@@ -55,32 +55,43 @@ export function ResultCard({ corrida, breakdown }: ResultCardProps) {
   };
 
   return (
-    <div className="glass-card glow-border p-5 space-y-4">
-      <h2 className="text-base font-semibold flex items-center gap-2 font-['Space_Grotesk'] tracking-tight">
-        <span className="text-gradient">Resultado da Corrida</span>
-      </h2>
-
-      {/* Route info */}
-      <div className="bg-secondary/30 rounded-xl p-3.5 space-y-2 border border-border/20">
-        <div className="flex items-center gap-2 text-sm">
-          <MapPin className="w-4 h-4 text-green-success flex-shrink-0" />
-          <span className="truncate">{corrida.origem}</span>
+    <div className="space-y-4">
+      {/* Route summary */}
+      <div className="flex gap-3">
+        <div className="flex flex-col items-center py-1">
+          <div className="w-2 h-2 rounded-full bg-muted-foreground" />
+          <div className="w-[2px] flex-1 bg-border/40 my-1" />
+          <div className="w-2 h-2 rounded-sm bg-foreground" />
         </div>
-        <div className="flex items-center gap-2 text-sm">
-          <Navigation className="w-4 h-4 text-destructive flex-shrink-0" />
-          <span className="truncate">{corrida.destino}</span>
-        </div>
-        <div className="flex items-center gap-4 text-xs text-muted-foreground mt-1 pt-2 border-t border-border/20">
-          <span className="flex items-center gap-1"><Route className="w-3 h-3" /> {corrida.distancia_km} km</span>
-          <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> {corrida.tempo_estimado}</span>
+        <div className="flex-1 space-y-3">
+          <div>
+            <p className="text-xs text-muted-foreground">Origem</p>
+            <p className="text-sm truncate">{corrida.origem}</p>
+          </div>
+          <div>
+            <p className="text-xs text-muted-foreground">Destino</p>
+            <p className="text-sm truncate">{corrida.destino}</p>
+          </div>
         </div>
       </div>
+
+      <div className="flex gap-3">
+        <span className="text-xs text-muted-foreground bg-secondary rounded-full px-3 py-1.5 flex items-center gap-1">
+          <Route className="w-3 h-3" /> {corrida.distancia_km} km
+        </span>
+        <span className="text-xs text-muted-foreground bg-secondary rounded-full px-3 py-1.5 flex items-center gap-1">
+          <Clock className="w-3 h-3" /> {corrida.tempo_estimado}
+        </span>
+      </div>
+
+      {/* Divider */}
+      <div className="h-px bg-border/30" />
 
       {/* Breakdown */}
       <div>
         <LineItem icon={Route} label={`${corrida.distancia_km} km × R$ 2,75`} value={breakdown.valorKm} index={0} />
-        <LineItem icon={Users} label="Adicional passageiros" value={breakdown.adicionalPassageiros} index={1} />
-        <LineItem icon={ShoppingCart} label="Carrinho de feira" value={breakdown.adicionalFeira} index={2} />
+        <LineItem icon={Users} label="Passageiros extra" value={breakdown.adicionalPassageiros} index={1} />
+        <LineItem icon={ShoppingCart} label="Feira" value={breakdown.adicionalFeira} index={2} />
         <LineItem icon={PawPrint} label="Animal" value={breakdown.adicionalAnimal} index={3} />
         <LineItem icon={Clock} label={`Espera (${corrida.minutos_espera} min)`} value={breakdown.valorEspera} index={4} />
         <LineItem icon={MapPinned} label={`${corrida.paradas} parada(s)`} value={breakdown.valorParadas} index={5} />
@@ -88,23 +99,29 @@ export function ResultCard({ corrida, breakdown }: ResultCardProps) {
 
       {/* Total */}
       <motion.div
-        initial={{ scale: 0.95, opacity: 0 }}
+        initial={{ scale: 0.97, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
-        transition={{ duration: 0.4, delay: 0.3, type: "spring", stiffness: 200 }}
-        className="bg-primary/10 border border-primary/20 rounded-2xl p-5 text-center shimmer"
+        transition={{ duration: 0.3, delay: 0.2 }}
+        className="bg-foreground text-background rounded-2xl p-5 text-center"
       >
-        <span className="text-xs text-muted-foreground block mb-1 uppercase tracking-wider">Valor Total</span>
-        <span className="text-3xl font-bold text-gradient font-['Space_Grotesk']">
+        <span className="text-xs opacity-60 block mb-1 uppercase tracking-wider">Valor Total</span>
+        <span className="text-3xl font-bold">
           {formatarMoeda(breakdown.total)}
         </span>
       </motion.div>
 
       {/* Actions */}
       <div className="grid grid-cols-2 gap-3">
-        <Button onClick={handleDownloadPDF} className="btn-glow gap-2 rounded-xl">
-          <Download className="w-4 h-4" /> Baixar PDF
+        <Button
+          onClick={handleDownloadPDF}
+          className="h-12 rounded-xl bg-secondary text-foreground hover:bg-muted border-0 gap-2 font-medium"
+        >
+          <Download className="w-4 h-4" /> PDF
         </Button>
-        <Button onClick={handleWhatsApp} variant="secondary" className="gap-2 rounded-xl bg-green-success/15 hover:bg-green-success/25 text-green-success border border-green-success/20 transition-all duration-300">
+        <Button
+          onClick={handleWhatsApp}
+          className="h-12 rounded-xl bg-[hsl(152,69%,47%)] hover:bg-[hsl(152,69%,42%)] text-white border-0 gap-2 font-medium"
+        >
           <Share2 className="w-4 h-4" /> WhatsApp
         </Button>
       </div>
