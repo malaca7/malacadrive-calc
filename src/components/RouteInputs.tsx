@@ -3,7 +3,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import { RideMap } from "@/components/RideMap";
 import { AddressSearch } from "@/components/AddressSearch";
 import { useState, useCallback } from "react";
-import { Button } from "@/components/ui/button";
 
 interface RouteInputsProps {
   origem: string;
@@ -14,11 +13,14 @@ interface RouteInputsProps {
   onDestinoChange: (v: string) => void;
   onDistanciaChange: (v: number) => void;
   onTempoChange: (v: string) => void;
+  mapOnly?: boolean;
+  inputsOnly?: boolean;
 }
 
 export function RouteInputs({
   origem, destino, distanciaKm, tempoEstimado,
   onOrigemChange, onDestinoChange, onDistanciaChange, onTempoChange,
+  mapOnly, inputsOnly,
 }: RouteInputsProps) {
   const [origemCoords, setOrigemCoords] = useState<[number, number] | null>(null);
   const [destinoCoords, setDestinoCoords] = useState<[number, number] | null>(null);
@@ -71,135 +73,87 @@ export function RouteInputs({
 
   const hasRoute = origemCoords && destinoCoords;
 
-  return (
-    <div className="glass-card p-5 space-y-4">
-      <h2 className="text-base font-semibold flex items-center gap-2 font-['Space_Grotesk'] tracking-tight">
-        <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center">
-          <Route className="w-4 h-4 text-primary" />
-        </div>
-        Rota da Corrida
-      </h2>
-
-      {/* Search inputs with swap button */}
-      <div className="relative space-y-2">
-        {/* Connecting line */}
-        <div className="absolute left-[22px] top-[22px] w-[2px] h-[calc(100%-44px)] bg-gradient-to-b from-green-500/40 via-border/30 to-red-500/40 z-0 rounded-full" />
-
-        <AddressSearch
-          placeholder="Pesquisar origem..."
-          value={origem}
-          icon={<MapPin className="w-4 h-4 text-green-500" />}
-          onSelect={handleOrigemSearch}
-          onClear={handleClearOrigem}
-        />
-
-        {/* Swap button */}
-        {hasRoute && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="flex justify-center -my-1 relative z-10"
-          >
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleSwapRoute}
-              className="h-7 w-7 p-0 rounded-full bg-secondary/80 hover:bg-primary/20 border border-border/40 hover:border-primary/40 transition-all"
-            >
-              <ArrowRightLeft className="w-3 h-3 text-muted-foreground" />
-            </Button>
-          </motion.div>
-        )}
-
-        <AddressSearch
-          placeholder="Pesquisar destino..."
-          value={destino}
-          icon={<Navigation className="w-4 h-4 text-red-500" />}
-          onSelect={handleDestinoSearch}
-          onClear={handleClearDestino}
+  // Map-only mode: renders just the map full-size
+  if (mapOnly) {
+    return (
+      <div className="absolute inset-0">
+        <RideMap
+          selectingMode={selectingMode}
+          origemCoords={origemCoords}
+          destinoCoords={destinoCoords}
+          onSelect={handleMapSelect}
+          onOrigemAddress={onOrigemChange}
+          onDestinoAddress={onDestinoChange}
+          onDistanceChange={onDistanciaChange}
+          onTimeChange={onTempoChange}
+          fullscreen
         />
       </div>
+    );
+  }
 
-      {/* Map and stats */}
-      <AnimatePresence mode="wait">
-        {hasRoute ? (
-          <motion.div
-            key="map-view"
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-            className="space-y-3"
-          >
-            <RideMap
-              selectingMode={selectingMode}
-              origemCoords={origemCoords}
-              destinoCoords={destinoCoords}
-              onSelect={handleMapSelect}
-              onOrigemAddress={onOrigemChange}
-              onDestinoAddress={onDestinoChange}
-              onDistanceChange={onDistanciaChange}
-              onTimeChange={onTempoChange}
+  // Inputs-only mode: renders search fields for the bottom sheet
+  if (inputsOnly) {
+    return (
+      <div className="space-y-3">
+        {/* Uber-style address inputs */}
+        <div className="flex gap-3">
+          {/* Dot-line connector */}
+          <div className="flex flex-col items-center py-3 gap-0">
+            <div className="w-2 h-2 rounded-full bg-muted-foreground" />
+            <div className="w-[2px] flex-1 bg-muted-foreground/30 my-1" />
+            <div className="w-2 h-2 rounded-sm bg-foreground" />
+          </div>
+
+          <div className="flex-1 space-y-2">
+            <AddressSearch
+              placeholder="De onde?"
+              value={origem}
+              icon={<div className="w-1.5 h-1.5 rounded-full bg-muted-foreground" />}
+              onSelect={handleOrigemSearch}
+              onClear={handleClearOrigem}
             />
+            <AddressSearch
+              placeholder="Para onde?"
+              value={destino}
+              icon={<div className="w-1.5 h-1.5 rounded-sm bg-foreground" />}
+              onSelect={handleDestinoSearch}
+              onClear={handleClearDestino}
+            />
+          </div>
 
-            <AnimatePresence>
-              {distanciaKm > 0 && (
-                <motion.div
-                  initial={{ opacity: 0, y: 8, scale: 0.95 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.95 }}
-                  transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-                  className="flex items-center justify-center gap-6 text-sm bg-primary/8 border border-primary/15 rounded-xl p-3.5"
-                >
-                  <motion.span
-                    initial={{ opacity: 0, x: -10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.1 }}
-                    className="flex items-center gap-2 font-semibold"
-                  >
-                    <div className="w-6 h-6 rounded-lg bg-primary/15 flex items-center justify-center">
-                      <Route className="w-3.5 h-3.5 text-primary" />
-                    </div>
-                    {distanciaKm} km
-                  </motion.span>
-                  <div className="w-px h-5 bg-border/50" />
-                  <motion.span
-                    initial={{ opacity: 0, x: 10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.15 }}
-                    className="flex items-center gap-2 font-semibold"
-                  >
-                    <div className="w-6 h-6 rounded-lg bg-primary/15 flex items-center justify-center">
-                      <Clock className="w-3.5 h-3.5 text-primary" />
-                    </div>
-                    {tempoEstimado}
-                  </motion.span>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </motion.div>
-        ) : (
-          <motion.div
-            key="placeholder"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.3 }}
-            className="flex flex-col items-center justify-center py-8 gap-3"
-          >
-            <motion.div
-              animate={{ y: [0, -6, 0] }}
-              transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
-              className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center"
+          {/* Swap button */}
+          {hasRoute && (
+            <button
+              onClick={handleSwapRoute}
+              className="self-center p-2 rounded-full bg-secondary hover:bg-muted transition-colors"
             >
-              <MapPin className="w-6 h-6 text-primary/50" />
+              <ArrowRightLeft className="w-4 h-4 text-muted-foreground" />
+            </button>
+          )}
+        </div>
+
+        {/* Distance & time pills */}
+        <AnimatePresence>
+          {distanciaKm > 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: 5 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
+              className="flex items-center gap-3"
+            >
+              <span className="flex items-center gap-1.5 text-xs text-muted-foreground bg-secondary rounded-full px-3 py-1.5">
+                <Route className="w-3 h-3" /> {distanciaKm} km
+              </span>
+              <span className="flex items-center gap-1.5 text-xs text-muted-foreground bg-secondary rounded-full px-3 py-1.5">
+                <Clock className="w-3 h-3" /> {tempoEstimado}
+              </span>
             </motion.div>
-            <p className="text-xs text-muted-foreground text-center opacity-70">
-              Pesquise origem e destino para traçar a rota
-            </p>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
-  );
+          )}
+        </AnimatePresence>
+      </div>
+    );
+  }
+
+  return null;
 }
