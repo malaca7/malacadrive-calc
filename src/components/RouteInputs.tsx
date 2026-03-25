@@ -1,7 +1,6 @@
-import { MapPin, Navigation, Route, Clock } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { MapPin, Navigation, Route, Clock, Search } from "lucide-react";
 import { RideMap } from "@/components/RideMap";
+import { AddressSearch } from "@/components/AddressSearch";
 import { useState, useCallback } from "react";
 
 interface RouteInputsProps {
@@ -19,9 +18,20 @@ export function RouteInputs({
   origem, destino, distanciaKm, tempoEstimado,
   onOrigemChange, onDestinoChange, onDistanciaChange, onTempoChange,
 }: RouteInputsProps) {
-  const [selectingMode, setSelectingMode] = useState<'origem' | 'destino'>('origem');
   const [origemCoords, setOrigemCoords] = useState<[number, number] | null>(null);
   const [destinoCoords, setDestinoCoords] = useState<[number, number] | null>(null);
+  const [selectingMode, setSelectingMode] = useState<'origem' | 'destino'>('origem');
+
+  const handleOrigemSearch = useCallback((lat: number, lng: number, address: string) => {
+    setOrigemCoords([lat, lng]);
+    onOrigemChange(address);
+    if (!destinoCoords) setSelectingMode('destino');
+  }, [onOrigemChange, destinoCoords]);
+
+  const handleDestinoSearch = useCallback((lat: number, lng: number, address: string) => {
+    setDestinoCoords([lat, lng]);
+    onDestinoChange(address);
+  }, [onDestinoChange]);
 
   const handleMapSelect = useCallback((lat: number, lng: number) => {
     if (selectingMode === 'origem') {
@@ -40,24 +50,20 @@ export function RouteInputs({
         Rota da Corrida
       </h2>
 
-      {/* Mode selector */}
-      <div className="grid grid-cols-2 gap-2">
-        <Button
-          variant={selectingMode === 'origem' ? 'default' : 'secondary'}
-          size="sm"
-          onClick={() => setSelectingMode('origem')}
-          className="gap-1.5 text-xs"
-        >
-          <MapPin className="w-3.5 h-3.5" /> Selecionar Origem
-        </Button>
-        <Button
-          variant={selectingMode === 'destino' ? 'default' : 'secondary'}
-          size="sm"
-          onClick={() => setSelectingMode('destino')}
-          className="gap-1.5 text-xs"
-        >
-          <Navigation className="w-3.5 h-3.5" /> Selecionar Destino
-        </Button>
+      {/* Search inputs */}
+      <div className="space-y-2">
+        <AddressSearch
+          placeholder="Pesquisar origem..."
+          value={origem}
+          icon={<MapPin className="w-4 h-4 text-green-success" />}
+          onSelect={handleOrigemSearch}
+        />
+        <AddressSearch
+          placeholder="Pesquisar destino..."
+          value={destino}
+          icon={<Navigation className="w-4 h-4 text-destructive" />}
+          onSelect={handleDestinoSearch}
+        />
       </div>
 
       {/* Map */}
@@ -72,21 +78,10 @@ export function RouteInputs({
         onTimeChange={onTempoChange}
       />
 
-      {/* Address displays */}
-      <div className="space-y-2">
-        <div className="flex items-start gap-2 text-sm bg-secondary/50 rounded-lg p-2.5">
-          <MapPin className="w-4 h-4 text-green-success flex-shrink-0 mt-0.5" />
-          <span className={origem ? 'text-foreground' : 'text-muted-foreground/50'}>
-            {origem || 'Clique no mapa para definir a origem'}
-          </span>
-        </div>
-        <div className="flex items-start gap-2 text-sm bg-secondary/50 rounded-lg p-2.5">
-          <Navigation className="w-4 h-4 text-destructive flex-shrink-0 mt-0.5" />
-          <span className={destino ? 'text-foreground' : 'text-muted-foreground/50'}>
-            {destino || 'Clique no mapa para definir o destino'}
-          </span>
-        </div>
-      </div>
+      <p className="text-xs text-muted-foreground text-center">
+        <Search className="w-3 h-3 inline mr-1" />
+        Pesquise acima ou clique no mapa para selecionar
+      </p>
 
       {/* Distance and time */}
       {distanciaKm > 0 && (
