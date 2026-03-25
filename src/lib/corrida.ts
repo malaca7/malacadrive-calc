@@ -13,6 +13,7 @@ export interface Corrida {
 }
 
 export const VALOR_KM = 2.75;
+export const VALOR_MINIMO_KM = 10;
 export const VALOR_ESPERA_MIN = 0.50;
 export const VALOR_PARADA = 5.00;
 
@@ -45,7 +46,7 @@ export interface Breakdown {
 }
 
 export function calcularCorrida(corrida: Corrida): Breakdown {
-  const valorKm = corrida.distancia_km * VALOR_KM;
+  const valorKm = Math.max(corrida.distancia_km * VALOR_KM, VALOR_MINIMO_KM);
   const adicionalPassageiros = ADICIONAL_PASSAGEIROS[corrida.passageiros_tipo];
   const adicionalFeira = ADICIONAL_FEIRA[corrida.feira_tipo];
   const adicionalAnimal = ADICIONAL_ANIMAL[corrida.animal_tipo];
