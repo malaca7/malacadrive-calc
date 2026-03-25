@@ -28,7 +28,7 @@ export function AddressSearch({ placeholder, value, icon, onSelect }: AddressSea
     setLoading(true);
     try {
       const res = await fetch(
-        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q)}&limit=5&countrycodes=br&accept-language=pt-BR`,
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q + ", Cabo de Santo Agostinho, PE")}&limit=5&countrycodes=br&accept-language=pt-BR`,
         { headers: { "Accept-Language": "pt-BR" } }
       );
       const data: SearchResult[] = await res.json();
