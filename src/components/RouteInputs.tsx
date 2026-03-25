@@ -1,4 +1,5 @@
 import { MapPin, Navigation, Route, Clock, Search } from "lucide-react";
+import { motion } from "framer-motion";
 import { RideMap } from "@/components/RideMap";
 import { AddressSearch } from "@/components/AddressSearch";
 import { useState, useCallback } from "react";
@@ -44,13 +45,14 @@ export function RouteInputs({
   }, [selectingMode]);
 
   return (
-    <div className="glass-card p-5 space-y-4 animate-fade-in">
-      <h2 className="text-lg font-semibold flex items-center gap-2 font-['Space_Grotesk']">
-        <Route className="w-5 h-5 text-blue-accent" />
+    <div className="glass-card p-5 space-y-4">
+      <h2 className="text-base font-semibold flex items-center gap-2 font-['Space_Grotesk'] tracking-tight">
+        <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center">
+          <Route className="w-4 h-4 text-primary" />
+        </div>
         Rota da Corrida
       </h2>
 
-      {/* Search inputs */}
       <div className="space-y-2">
         <AddressSearch
           placeholder="Pesquisar origem..."
@@ -66,9 +68,13 @@ export function RouteInputs({
         />
       </div>
 
-      {/* Map - only show after both are selected */}
       {origemCoords && destinoCoords && (
-        <>
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+          className="space-y-3"
+        >
           <RideMap
             selectingMode={selectingMode}
             origemCoords={origemCoords}
@@ -80,22 +86,26 @@ export function RouteInputs({
             onTimeChange={onTempoChange}
           />
 
-          {/* Distance and time */}
           {distanciaKm > 0 && (
-            <div className="flex items-center gap-4 text-sm bg-primary/10 border border-primary/20 rounded-lg p-3 animate-fade-in">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.3 }}
+              className="flex items-center gap-4 text-sm bg-primary/8 border border-primary/15 rounded-xl p-3"
+            >
               <span className="flex items-center gap-1.5 font-medium">
-                <Route className="w-4 h-4 text-blue-accent" /> {distanciaKm} km
+                <Route className="w-4 h-4 text-primary" /> {distanciaKm} km
               </span>
               <span className="flex items-center gap-1.5 font-medium">
-                <Clock className="w-4 h-4 text-blue-accent" /> {tempoEstimado}
+                <Clock className="w-4 h-4 text-primary" /> {tempoEstimado}
               </span>
-            </div>
+            </motion.div>
           )}
-        </>
+        </motion.div>
       )}
 
       {(!origemCoords || !destinoCoords) && (
-        <p className="text-xs text-muted-foreground text-center py-4">
+        <p className="text-xs text-muted-foreground text-center py-5 opacity-60">
           <Search className="w-3 h-3 inline mr-1" />
           Pesquise origem e destino para ver a rota no mapa
         </p>
