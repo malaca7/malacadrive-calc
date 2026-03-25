@@ -52,6 +52,24 @@ function estimateTime(distanceKm: number): string {
   return `${h}h ${m}min`;
 }
 
+async function fetchCarRoute(origin: [number, number], dest: [number, number]): Promise<{ coords: [number, number][]; distanceKm: number; durationMin: number } | null> {
+  try {
+    const url = `https://router.project-osrm.org/route/v1/driving/${origin[1]},${origin[0]};${dest[1]},${dest[0]}?overview=full&geometries=geojson`;
+    const res = await fetch(url);
+    const data = await res.json();
+    if (data.code !== "Ok" || !data.routes?.length) return null;
+    const route = data.routes[0];
+    const coords: [number, number][] = route.geometry.coordinates.map((c: number[]) => [c[1], c[0]] as [number, number]);
+    return {
+      coords,
+      distanceKm: Math.round(route.distance / 100) / 10,
+      durationMin: Math.round(route.duration / 60),
+    };
+  } catch {
+    return null;
+  }
+}
+
 async function reverseGeocode(lat: number, lon: number): Promise<string> {
   try {
     const res = await fetch(
